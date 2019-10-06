@@ -78,9 +78,7 @@ with open(csvFilename, encoding=csvEncoding) as csvfile:
             #monthlySum.append(sum)
             updateMonthly(row,sum,sumPlus,sumMinus,monthlySum,monthlyPlus,monthlyMinus)
             print(str(monthlySum[-1]) + " - " + str(currentMonth))
-            print(str(monthlyPlus[-1]) + " <--> " + str(monthlyMinus[-1]))
-            # print a new line
-            print()
+            print(str(monthlyPlus[-1]) + " <--> " + str(monthlyMinus[-1]) + '\n')
             updateSums(row,sum,sumPlus,sumMinus)
             resetSums(sum,sumPlus,sumMinus)
             #sum=getTransactionValue(row)
@@ -88,6 +86,7 @@ with open(csvFilename, encoding=csvEncoding) as csvfile:
 updateMonthly(row,sum,sumPlus,sumMinus,monthlySum,monthlyPlus,monthlyMinus)
 #monthlySum.append(sum)
 print(str(monthlySum[-1]) + " - " + str(currentMonth))
+print(str(monthlyPlus[-1]) + " <--> " + str(monthlyMinus[-1]) + '\n')
             
 for entry in monthlySum:
     i=i+entry
