@@ -5,59 +5,74 @@
 csvFilename='umsatz4.csv'
 csvEncoding='ISO-8859-1'
 
-### functions
+### calculator class
 
-def getMonth(row):
-    # syntax is dd.mm.yy
-    date=row['Buchungstag']
-    return int(date[3:5])
+class CsvCalculator:
 
-def getYear(row):
-    # syntax is dd.mm.yy
-    date=row['Buchungstag']
-    return int(date[6:])
+    ### methods
+    def __init__(self):
+        self.monthlySum=[]
+        self.monthlyPlus=[]
+        self.monthlyMinus=[]
+        self.sum=0
+        self.sumPlus=0
+        self.sumMinus=0
 
-def getTransactionPerson(row):
-    return row['Beguenstigter/Zahlungspflichtiger']
+    def append_monthlySum(self,sumToAdd):
+        self.monthlySum.append(sumToAdd)
 
-def getTransactionValue(row):
-    #turn decimal , into decimal .
-    transaction=row['Betrag'].replace(',','.')
-    return float(transaction)
+    def append_monthlyPlus(self,sumToAdd):
+        self.monthlyPlus.append(sumToAdd)
+    
+    def append_monthlyMinus(self,sumToAdd):
+        self.monthlyMinus.append(sumToAdd)
 
-def updateSums(row,sum,sumPlus,sumMinus):
-    value=getTransactionValue(row)
-    sum[0]=sum[0]+value
-    if value<0:
-        sumMinus[0]=sumMinus[0]+value
-    else:
-        sumPlus[0]=sumPlus[0]+value
+    def getMonth(self,row):
+        # syntax is dd.mm.yy
+        date=row['Buchungstag']
+        return int(date[3:5])
 
-def updateMonthly(row,sum,sumPlus,sumMinus,m,mp,mm):
-    value=getTransactionValue(row)
-    m.append(sum[0])
-    mp.append(sumPlus[0])
-    mm.append(sumMinus[0])
+    def getYear(self,row):
+        # syntax is dd.mm.yy
+        date=row['Buchungstag']
+        return int(date[6:])
 
-def resetSums(sum,sumPlus,sumMinus):
-    sum[0]=0
-    sumPlus[0]=0
-    sumMinus[0]=0
+    def getTransactionPerson(self,row):
+        return row['Beguenstigter/Zahlungspflichtiger']
 
-### variable initialisations
+    def getTransactionValue(self,row):
+        #turn decimal comma into decimal dot
+        transaction=row['Betrag'].replace(',','.')
+        return float(transaction)
 
-sum=[]
-sum.append(0)
-sumPlus=[]
-sumPlus.append(0)
-sumMinus=[]
-sumMinus.append(0)
-monthlySum=[]
-monthlyPlus=[]
-monthlyMinus=[]
+    def updateSums(self,row):
+        value=self.getTransactionValue(row)
+        self.sum=self.sum+value
+        if value<0:
+            self.sumMinus=self.sumMinus+value
+        else:
+            self.sumPlus=self.sumPlus+value
+
+    def updateMonthly(self, row):
+        value=self.getTransactionValue(row)
+        self.monthlySum.append(self.sum)
+        self.monthlyPlus.append(self.sumPlus)
+        self.monthlyMinus.append(self.sumMinus)
+
+    def resetSums(self):
+        self.sum=0
+        self.sumPlus=0
+        self.sumMinus=0
+
+    ### variable initialisations
+
+
+
 i=0
 
 ### main
+
+calc = CsvCalculator()
 
 #set up csv reader
 import csv, codecs
@@ -67,28 +82,25 @@ with open(csvFilename, encoding=csvEncoding) as csvfile:
     # read through the whole csv file
     for row in reader:
         if checkMonth == True:
-            currentMonth=getMonth(row)
+            currentMonth=calc.getMonth(row)
             checkMonth = False
         #still in current month, get the transaction value
-        if getMonth(row)==currentMonth:
-            updateSums(row,sum,sumPlus,sumMinus)
-            #sum = sum+getTransactionValue(row)
+        if calc.getMonth(row)==currentMonth:
+            calc.updateSums(row)
         #not in current month any more, write away last sum and start sum for the new month. check new month
         else:
-            #monthlySum.append(sum)
-            updateMonthly(row,sum,sumPlus,sumMinus,monthlySum,monthlyPlus,monthlyMinus)
-            print(str(monthlySum[-1]) + " - " + str(currentMonth))
-            print(str(monthlyPlus[-1]) + " <--> " + str(monthlyMinus[-1]) + '\n')
-            updateSums(row,sum,sumPlus,sumMinus)
-            resetSums(sum,sumPlus,sumMinus)
-            #sum=getTransactionValue(row)
+            calc.updateMonthly(row)
+            print(str(calc.monthlySum[-1]) + " - " + str(currentMonth))
+            print(str(calc.monthlyPlus[-1]) + " <--> " + str(calc.monthlyMinus[-1]) + '\n')
+            calc.updateSums(row)
+            calc.resetSums()
             checkMonth=True
-updateMonthly(row,sum,sumPlus,sumMinus,monthlySum,monthlyPlus,monthlyMinus)
-#monthlySum.append(sum)
-print(str(monthlySum[-1]) + " - " + str(currentMonth))
-print(str(monthlyPlus[-1]) + " <--> " + str(monthlyMinus[-1]) + '\n')
-            
-for entry in monthlySum:
+#update monthly afterwards, since it gets updated above only when a new month starts (not at end of file)
+calc.updateMonthly(row)
+print(str(calc.monthlySum[-1]) + " - " + str(currentMonth))
+print(str(calc.monthlyPlus[-1]) + " <--> " + str(calc.monthlyMinus[-1]) + '\n')
+
+for entry in calc.monthlySum:
     i=i+entry
 print("total: ")
 print(i)
